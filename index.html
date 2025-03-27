@@ -4,8 +4,10 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Real-Time Process Monitoring Dashboard</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.js"></script>
+  
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.5.4/socket.io.js"></script>
+    
     <style>
         /* General Styling */
         body {
@@ -230,7 +232,6 @@
         options: { scales: { y: { beginAtZero: true, max: 100 } } }
     });
 
-    // Update Table and Charts
     function updateTableAndCharts() {
         let filtered = processes.filter(p => 
             p.name.toLowerCase().includes(searchInput.value.toLowerCase())
@@ -250,21 +251,14 @@
             </tr>
         `).join('');
 
+        cpuChart.data.labels = filtered.map(p => p.name);
+        cpuChart.data.datasets[0].data = filtered.map(p => p.cpu_percent);
+        memoryChart.data.labels = filtered.map(p => p.name);
+        memoryChart.data.datasets[0].data = filtered.map(p => p.memory_percent);
+
         cpuChart.update();
         memoryChart.update();
     }
-
-    // Event Listeners
-    toggleViewBtn.addEventListener('click', () => {
-        showAll = !showAll;
-        toggleViewBtn.textContent = showAll ? 'Show Top 5' : 'View All';
-        updateTableAndCharts();
-    });
-
-    liveUpdateBtn.addEventListener('click', () => {
-        liveUpdate = !liveUpdate;
-        liveUpdateBtn.textContent = liveUpdate ? 'Pause Live Update' : 'Resume Live Update';
-    });
 
     socket.on('update', (data) => {
         if (liveUpdate) {
