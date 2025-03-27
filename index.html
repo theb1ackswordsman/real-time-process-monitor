@@ -232,9 +232,11 @@
 
     // Update Table and Charts
     function updateTableAndCharts() {
-        let filtered = processes.filter(p => p.name.toLowerCase().includes(searchInput.value.toLowerCase()));
-
-        filtered.sort((a, b) => sortBy.value === 'cpu' ? b.cpu_percent - a.cpu_percent : b.memory_percent - a.memory_percent);
+        let filtered = processes.filter(p => 
+            p.name.toLowerCase().includes(searchInput.value.toLowerCase())
+        ).sort((a, b) => 
+            sortBy.value === 'cpu' ? b.cpu_percent - a.cpu_percent : b.memory_percent - a.memory_percent
+        );
 
         if (!showAll) filtered = filtered.slice(0, 5);
 
@@ -245,21 +247,30 @@
                 <td>${p.cpu_percent.toFixed(2)}</td>
                 <td>${p.memory_percent.toFixed(2)}</td>
                 <td><button onclick="killProcess(${p.pid})">Kill</button></td>
-            </tr>`).join('');
+            </tr>
+        `).join('');
 
-        // Update Charts
-        cpuChart.data.labels = filtered.map(p => p.name);
-        cpuChart.data.datasets[0].data = filtered.map(p => p.cpu_percent);
         cpuChart.update();
-
-        memoryChart.data.labels = filtered.map(p => p.name);
-        memoryChart.data.datasets[0].data = filtered.map(p => p.memory_percent);
         memoryChart.update();
     }
 
-    socket.on('update', (data) => {
-        if (liveUpdate) processes = data;
+    // Event Listeners
+    toggleViewBtn.addEventListener('click', () => {
+        showAll = !showAll;
+        toggleViewBtn.textContent = showAll ? 'Show Top 5' : 'View All';
         updateTableAndCharts();
+    });
+
+    liveUpdateBtn.addEventListener('click', () => {
+        liveUpdate = !liveUpdate;
+        liveUpdateBtn.textContent = liveUpdate ? 'Pause Live Update' : 'Resume Live Update';
+    });
+
+    socket.on('update', (data) => {
+        if (liveUpdate) {
+            processes = data;
+            updateTableAndCharts();
+        }
     });
 </script>
 
